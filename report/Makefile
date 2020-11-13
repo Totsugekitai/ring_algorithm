@@ -1,3 +1,4 @@
+.RECIPEPREFIX = >
 MAKE			= make
 LATEXMK			= latexmk
 
@@ -15,11 +16,11 @@ TARGET			= $(addsuffix .pdf $(SRC))
 all: $(SRC).pdf
 
 %.pdf: %.tex
-	$(LATEXMK) $(LATEXMKFLAG) $<
+> $(LATEXMK) $(LATEXMKFLAG) $<
 
 continue: LATEXMKFLAG += -pvc -synctex=1
 continue: all
 
 clean:
-	rm -f *.bbl *.blg *.aux *.log *.dvi *.fls *.fdb_latexmk *.ltjruby *.out *.synctex.gz *.pdf
+> rm -f *.bbl *.blg *.aux *.log *.dvi *.fls *.fdb_latexmk *.ltjruby *.out *.synctex.gz main.pdf
 

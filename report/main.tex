@@ -1,4 +1,4 @@
-\documentclass[a4paper,titlepage]{jlreq}
+\documentclass[a4paper]{jlreq}
 
 \usepackage{graphicx}
 \usepackage{listings}
@@ -21,7 +21,7 @@
 \usepackage{hyperref}
 \usepackage{here}
 
-\title{主専攻実験 分散プログラミング 課題1：リングアルゴリズム}
+\title{主専攻実験 分散プログラミング \\課題1：リングアルゴリズム}
 \author{201811377 広瀬智之}
 \date{\today}
 
@@ -29,10 +29,39 @@
 
 \maketitle
 
+\section{概要}
+
+別々のノードにあるプロセスをリング状に繋ぎ、途中からプロセスを追加・脱退させることを可能にする。
+
+またコーディネータと呼ぶノードを選出しハートビートを行うことで、繋がれたプロセスの生存を確認する。
+さらにコーディネータからのハートビートが途絶えたら他のプロセスから新たなコーディネータを選出するように実装する。
+
+\section{アルゴリズム}
+
+この章では実装に用いるアルゴリズムを解説する。
+
+\subsection{プロセスの繋ぎ方}
+
+プロセスを繋ぐアルゴリズムには双方向リンクリストを用いる。
+
+
+\section{実装}
+
+プログラムは\ref{sec:proglist}章に掲載する。
+
+
 
 \section{プログラムリスト}
+\label{sec:proglist}
 
 \lstinputlisting[label=p1,language=c,caption=main.c]{../src/main.c}
 \lstinputlisting[label=p2,language=c,caption=rpc.c]{../src/rpc.c}
+\lstinputlisting[label=p3,language=c,caption=ring.c]{../src/ring.c}
+
+以下はヘッダファイルである。
+
+\lstinputlisting[label=p4,language=c,caption=main.h]{../src/main.h}
+\lstinputlisting[label=p5,language=c,caption=rpc.h]{../src/rpc.h}
+\lstinputlisting[label=p6,language=c,caption=ring.h]{../src/ring.h}
 
 \end{document}
