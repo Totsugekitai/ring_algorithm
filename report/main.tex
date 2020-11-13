@@ -1,0 +1,38 @@
+\documentclass[a4paper,titlepage]{jlreq}
+
+\usepackage{graphicx}
+\usepackage{listings}
+\lstset{
+  basicstyle=\small\ttfamily,
+  identifierstyle=\small,
+  ndkeywordstyle=\small,
+  tabsize=4,
+  frame={shadowbox},
+  frameround={ffff},
+  breaklines=true,
+  columns=[l]{fullflexible},
+  numbers=left,
+  numbersep=5pt,
+  numberstyle=\scriptsize,
+  stepnumber=1,
+  lineskip=-0.5ex
+}
+\renewcommand{\lstlistingname}{ソースコード} % キャプション名の変更
+\usepackage{hyperref}
+\usepackage{here}
+
+\title{主専攻実験 分散プログラミング 課題1：リングアルゴリズム}
+\author{201811377 広瀬智之}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+
+\section{プログラムリスト}
+
+\lstinputlisting[label=p1,language=c,caption=main.c]{../src/main.c}
+\lstinputlisting[label=p2,language=c,caption=rpc.c]{../src/rpc.c}
+
+\end{document}
