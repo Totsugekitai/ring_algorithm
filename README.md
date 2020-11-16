@@ -1,6 +1,6 @@
-# リングアルゴリズム
+# A Distributed Ring Algorithm for coordinator election
 
-プロセスをリングでつないでハートビートするやつです。
+コーディネータと呼ばれるノードを選出し、ハートビートを行うアルゴリズムのC言語実装です。
 
 ## 環境設定
 

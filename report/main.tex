@@ -43,7 +43,140 @@
 \subsection{プロセスの繋ぎ方}
 
 プロセスを繋ぐアルゴリズムには双方向リンクリストを用いる。
+双方向リンクリストは順番の前と後のノードに対してリンクを張ることによって、前後のリンクをたどってノードの探索ができる。
 
+擬似プログラム上のノードの構造体は ソースコード\ref{prog:pseudo_node} のようになる。
+
+\begin{lstlisting}[label=prog:pseudo_node,caption=ノードを表す擬似的な構造体]
+struct Node
+    Node *next
+    Node *prev
+
+global struct Node n
+\end{lstlisting}
+
+ノードは次の順番のノードのポインタである \texttt{next} と、前の順番のノードのポインタである \texttt{prev} を保持し、アクセスできるようにしている。
+\texttt{global struct Node n} として、各ノードでグローバル変数として保持しておく。
+
+\subsection{ノードの参加処理}
+
+たとえば、すでにあるリング状のリストに対して新たにノードを参加させる際の処理を書いた疑似コードはソースコード\ref{prog:pseudo_join} である。
+\texttt{n'}は既存ノードであり、その前に \texttt{n}を参加させる。
+
+\begin{lstlisting}[label=prog:pseudo_join, caption=ノード参加処理の疑似コード]
+join_ring(n')
+    n.next = n'
+    n.prev = n'.join(n)
+
+node.join(node')
+    node.prev.set_next(node')
+    old_prev = node.prev
+    node.prev = node'
+    return old_prev
+
+node.set_next(node')
+    node.next = node'
+\end{lstlisting}
+
+\texttt{node.join()} と \texttt{node.set\_next()} はノード \texttt{node} へのRPCである。
+\texttt{join\_ring()} はローカルの関数実行である。
+
+\texttt{join\_ring()} は参加したいノードが既存のノードを引数にして実行する。
+参加するノードの \texttt{next} を \texttt{n'} として、このとき \texttt{prev} には \texttt{n'.prev} を代入したいので、
+\texttt{n'} に \texttt{join} RPCを発行して \texttt{n'.prev} を返してもらう。
+
+\texttt{node.join()} は \texttt{join} RPCである。
+引数に指定された参加ノード \texttt{node'} を、 \texttt{prev} に \texttt{set\_next} RPCを発行して \texttt{prev} の
+\texttt{next} に代入する。
+\texttt{prev} を \texttt{old\_prev} に保存しておいて、 \texttt{prev} に \texttt{node'} を代入し、
+最後に \texttt{old\_prev} を返す。
+
+\texttt{node.set\_next()} は \texttt{set\_next} RPCである。
+これは \texttt{next} に対して指定されたノード \texttt{node'} を代入する。
+
+\subsection{ノードの脱退処理}
+
+既にあるリングプロセスから脱退したい場合の処理を書いた疑似コードはソースコード \ref{prog:pseudo_leave} である。
+
+\begin{lstlisting}[label=prog:pseudo_leave, caption=ノード脱退処理の疑似コード]
+node.leave()
+    call_set_next(node.prev, node.next)
+    call_set_prev(node.next, node.prev)
+
+call_set_next(n1, n2)
+    n1.set_next(n2)
+
+call_set_prev(n1, n2)
+    n1.set_prev(n2)
+\end{lstlisting}
+
+\texttt{node.leave()} は \texttt{leave} RPCである。
+\texttt{call\_set\_next()} で \texttt{node.prev} の \texttt{next} を \texttt{node.next} に設定する。
+\texttt{call\_set\_prev()} で \texttt{node.next} の \texttt{prev} を \texttt{node.prev} に設定する。
+
+\texttt{call\_set\_next()} と \texttt{call\_set\_prev()} は1つ目の引数で指定したノードに対して、
+2つ目の引数を指定したRPCを発行するローカル関数である。
+
+\subsection{リングプロセスのリストを作成するRPC}
+
+リングプロセスのリストを作成するRPCの疑似コードをソースコード \ref{prog:pseudo_list} に示す。
+
+\begin{lstlisting}[label=prog:pseudo_list, caption=プロセスリストを作成するRPCの疑似コード]
+global vector<Node> nlist
+
+get_list()
+    nlist = null
+    n.list(nlist)
+
+node.list(node_list)
+    if contain(node, node_list)
+        nlist = node_list
+    else
+        node_list += node
+        node.next.list(node_list)
+\end{lstlisting}
+
+グローバル変数として \texttt{Node} 型のベクタである \texttt{nlist} を定義しておく。
+
+\texttt{get\_list()} はリングプロセスのリストを作成するローカル関数である。
+\texttt{nlist} を初期化し、自分のプロセスに対して \texttt{list} RPCを発行する。
+
+\texttt{node.list()} は \texttt{list} RPCである。
+引数に \texttt{node\_list} を受け取り、リストに自分が含まれていれば \texttt{nlist} に \texttt{node\_list} を
+代入して処理を終了する。
+リストに自分が含まれていなければ、リストに自分を追加して \texttt{node.next} に対して \texttt{list} RPCを発行する。
+
+\texttt{get\_list()} を実行すると、ノードのリストを得ることができる。
+
+\subsection{コーディネータを選出するRPC}
+
+コーディネータと呼ばれるノードを選出するRPCの疑似コードをソースコード \ref{prog:pseudo_election} に示す。
+
+\begin{lstlisting}[label=prog:pseudo_election, caption=コーディネータを選出するRPCの疑似コード]
+global bool already_selected
+
+node.coordinator(node_complete_list)
+    if already_selected
+        return
+    else
+        select_coordinator(node_complete_list)
+        node.next.coordinator(node_complete_list)
+        already_selected = true
+
+node.election()
+    get_list()
+    node.coordinator(nlist)
+\end{lstlisting}
+
+グローバル変数として \texttt{already\_selected} を用意しておく。
+
+\texttt{node.coordinator()} は \texttt{coordinator} RPCである。
+\texttt{already\_selected} を確認して \texttt{false} だったらノードのリストからコーディネータを選出し、
+\texttt{node.next} に対して \texttt{coordinator} RPCを発行する。
+
+\texttt{node.election()} は \texttt{election} RPCである。
+まずは \texttt{get\_list()} でリングを一周してノードのリストを作成し、
+\texttt{node.coordinator()} RPCを発行してもう一周してコーディネータを選出する。
 
 \section{実装}
 
